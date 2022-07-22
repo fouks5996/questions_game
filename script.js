@@ -6,6 +6,17 @@ const showApiRes = document.getElementById("show-api-response");
 const correctionResponse = document.getElementById("response-correction");
 const testbutton = document.getElementById("finish");
 const allContent = document.getElementById("all-content");
+const scoreLength = document.getElementById("score-length");
+const title = document.getElementsByClassName("title")[0];
+const answerContent = document.getElementById("answer-content");
+const choices = document.getElementById("choice-content");
+
+const titleName = document.getElementById("title-name");
+
+// localstorage
+
+let firstName = window.prompt("Saissisez votre nom", "Ex : john doe");
+titleName.innerHTML = `<h1 class="title"> Bienvenue ${firstName} dans Questions pour un dev ! </h1>`;
 
 //********************************
 // FIND NUMBER AND RETURN DYNAMIC URL
@@ -30,14 +41,6 @@ const fetchData = async () => {
 // DISPLAY DATA WITH NEXT VALUE. called in findNumber()
 const displayData = async () => {
 	await fetchData();
-
-	localStorage.setItem(
-		"ApiResponse",
-		answerArray.map((el) => el.correct_answer)
-	);
-
-	const answerContent = document.getElementById("answer-content");
-	const choices = document.getElementById("choice-content");
 
 	showNextquestions(answerContent, choices);
 };
@@ -64,16 +67,26 @@ function getResponse(array) {
 		}
 	}
 	localStorage.setItem("UserResponse", array);
+
 	return array;
 }
 
 // Show questions and stock in LocalStorage. Called in displayData()
 function showNextquestions(content, choice) {
 	let arrayIterator = answerArray.values();
+	let arrayIndex = answerArray.keys();
 	const nextButton = document.getElementById("next-question");
+	nextButton.style.display = "block";
 	let response = [];
 
 	nextButton.onclick = function () {
+		const form = document.getElementById("form");
+		form.innerHTML = "";
+
+		title.innerHTML = `C'est parti ! ${arrayIndex.next().value + 1}/${
+			answerArray.length
+		} `;
+
 		let currentValue = arrayIterator.next().value;
 		let arrayChoice = [];
 
@@ -88,7 +101,7 @@ function showNextquestions(content, choice) {
 		getRandomChoice(currentValue, arrayChoice);
 
 		content.innerHTML = `
-         <div> 
+         <div class="rest"> 
             <h3> ${currentValue.question} </h3>
         </div> 
         `;
@@ -96,7 +109,7 @@ function showNextquestions(content, choice) {
 		choice.innerHTML = arrayChoice
 			.map(
 				(response) => `
-                  <div> 
+                  <div class="rest"> 
                         <input type="radio" id="${response}" name="input-button" value="${response}">
                         <label for="${response}">${response}</label>
                   </div> 
@@ -111,26 +124,45 @@ function showNextquestions(content, choice) {
 // Show score after end of questions. Called in showNextquestions(arg, arg) when breaked
 function showScore() {
 	testbutton.style.display = "block";
+	title.innerHTML = "";
 	allContent.innerHTML = `
-      <h1> Vous avez répondu à toute les questions! </h1>
+      <h1 class="title"> Vous avez répondu à toute les questions! </h1>
    `;
 	testbutton.onclick = function () {
+		testbutton.textContent = "Recommencer";
+		testbutton.onclick = function () {
+			location.reload();
+		};
 		let finalUserArray = localStorage.getItem("UserResponse").split(",");
 		let finalApiArray = answerArray.map((el) => el.correct_answer);
-		let arr = [];
+		let finalApiArrayQuestion = answerArray.map(
+			(el) => el.question.substring(0, 30) + `...`
+		);
+		let correctionArray = [];
 		let goodAnswerLength = intersect_arrays(
 			finalUserArray,
 			finalApiArray
 		).length;
 
+		let percentage = (goodAnswerLength / finalApiArray.length) * 100;
+
+		localStorage.setItem(firstName, percentage);
+
+		scoreLength.innerHTML = `<h3> score : ${goodAnswerLength}/${finalApiArray.length} </h3>`;
+
 		//
-		correctOrNot(arr, finalUserArray, finalApiArray);
-		mapScore(correctionResponse, arr, "Correction");
-		mapScore(showUserRes, finalUserArray, "Your responses :");
-		mapScore(showApiRes, finalApiArray, "Real Response");
+		for (let i = 0; i < finalUserArray.length; i++) {
+			correctionArray.push(finalUserArray[i] == finalApiArray[i]);
+		}
+		correctionArray = correctionArray.map(function (item) {
+			return item == false ? "mauvaise réponse" : "bonne réponse !";
+		});
+		//
+		mapScore(showUserRes, finalUserArray, "Réponses :");
+		mapScore(correctionResponse, correctionArray, "Correction :");
+		mapScore(showApiRes, finalApiArrayQuestion, "Questions :");
 	};
 }
-
 function intersect_arrays(a, b) {
 	var sorted_a = a.concat().sort();
 	var sorted_b = b.concat().sort();
@@ -155,51 +187,48 @@ function mapScore(htmlElement, array, message) {
 	htmlElement.innerHTML = array
 		.map(
 			(res) => `
-<li>
-${res}
-</li>
-`
+		<li>
+		${res}
+		</li>
+		`
 		)
 		.join(" ");
 	htmlElement.insertAdjacentHTML("afterbegin", `<h4> ${message} </h4>`);
 }
 
-function mapUserResponse(htmlElement, array, arrayGood) {
-	htmlElement.innerHTML = array
-		.map(
-			(res) => `
-<li>
-${res}
-</li>
-`
-		)
-		.join(" ");
+function allStorage() {
+	var archive = [],
+		keys = Object.keys(localStorage),
+		key;
 
-	htmlElement.insertAdjacentHTML(
-		"afterbegin",
-		`<h4> Your responses :  <span> ${arrayGood}/${array.length} </span> </h4>`
-	);
-}
-function mapCorrectionResponse(htmlElement, array) {
-	htmlElement.innerHTML = array
-		.map(
-			(res) => `
-<li>
-${res}
-</li>
-`
-		)
-		.join(" ");
-	htmlElement.insertAdjacentHTML("afterbegin", `<h4> Correction </h4>`);
-}
-function correctOrNot(arr, userArray, apiArray) {
-	for (let i = 0; i < userArray.length; i++) {
-		arr.push(userArray[i] == apiArray[i]);
+	for (let i = 0; (key = keys[i]); i++) {
+		const user = {
+			nom: key,
+			value: localStorage.getItem(key),
+		};
+
+		archive.push(user);
 	}
 
-	arr = arr.map(function (item) {
-		return item == false ? "mauvaise réponse" : "bonne réponse !";
-	});
+	archive.splice(
+		archive.findIndex((e) => e.nom.match("UserResponse")),
+		1
+	);
 
-	return arr;
+	archive = archive.sort((a, b) => b.value - a.value);
+
+	if (archive.length > 5) {
+		archive.splice(5, archive.length);
+	}
+
+	const scoreDiv = document.getElementById("score");
+	scoreDiv.innerHTML = archive
+		.map(
+			(el) => `
+			<li> ${el.nom} à un score de ${parseInt(el.value).toFixed(0)}%</li>
+		`
+		)
+		.join(" ");
 }
+
+allStorage();
