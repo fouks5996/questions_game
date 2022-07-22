@@ -1,0 +1,10 @@
+.radio-input-wrapper{
+   display: flex;
+   flex-direction: column;
+}
+
+#responses-wrapper{
+   display: flex;
+   gap: 20px;
+   max-width: 500px;
+}

@@ -1,0 +1,38 @@
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<h1>Bienvenue dans Questions pour un dev !</h1>
+		<form action="">
+			<label for="number"> Sélectionner un nombre :</label>
+			<select name="number" id="number-select" onchange="findNumber()">
+				<option value="dog">--Sélectionner--</option>
+				<option value="1">1 question</option>
+				<option value="2">2 questions</option>
+				<option value="3">3 questions</option>
+				<option value="4">4 questions</option>
+				<option value="5">5 questions</option>
+				<option value="10">10 questions</option>
+				<option value="15">15 questions</option>
+				<option value="20">20 questions</option>
+			</select>
+		</form>
+		<div id="all-content">
+			<div id="answer-content"></div>
+			<div id="choice-content"></div>
+			<button id="next-question">Next</button>
+		</div>
+		<button id="finish" style="display: none">Voir les réponses</button>
+		<div id="responses-wrapper">
+			<div id="show-api-response"></div>
+			<div id="show-user-response"></div>
+			<div id="response-correction"></div>
+		</div>
+		<script src="./script.js"></script>
+	</body>
+</html>
